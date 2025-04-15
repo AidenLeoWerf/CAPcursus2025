@@ -119,7 +119,7 @@ resources:
     service: destination
     service-plan: lite
   requires:
-     - name: srv-api
+  - name: srv-api
 
 parameters:
   deploy_mode: html5-repo
