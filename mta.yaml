@@ -2,12 +2,14 @@ _schema-version: 3.3.0
 ID: TicketService06
 description: A simple CAP project.
 version: 1.0.0
+
 modules:
 - name: TicketService06-srv
   type: nodejs
   path: gen/srv
   requires:
   - name: TicketService06-auth
+  - name: TicketService06-dest
   provides:
   - name: srv-api
     properties:
@@ -31,6 +33,36 @@ modules:
       - aidenlwlwticketservice06.zip
       name: aidenlwlwticketservice06
       target-path: resources/
+- name: TicketService06-dest-content
+  type: com.sap.application.content
+  requires:
+  - name: TicketService06-dest
+    parameters:
+      content-target: true
+  - name: TicketService06-repo-host
+    parameters:
+      service-key:
+        name: TicketService06-repo-host-key
+  - name: TicketService06-auth
+    parameters:
+      name: TicketService06-auth-key
+      service-key: null
+  parameters:
+    content:
+      instance:
+        destinations:
+        - Name: TicketService06_repo_host
+          ServiceInstanceName: TicketService06-repo-host
+          ServiceKeyName: TicketService06-repo-host-key
+          sap.cloud.service: TicketService06
+        - Authentication: OAuth2UserTokenExchange
+          Name: TicketService06_auth
+          ServiceInstanceName: TicketService06-auth
+          ServiceKeyName: TicketService06-auth-key
+          sap.cloud.service: TicketService06
+        existing_destinations_policy: update
+  build-parameters:
+    no-source: true
 - name: aidenlwlwticketservice06
   type: html5
   path: app/lw_ticketservice06
@@ -41,6 +73,7 @@ modules:
     - npm install
     - npm run build:cf
     supported-platforms: []
+
 resources:
 - name: TicketService06-auth
   type: org.cloudfoundry.managed-service
@@ -51,17 +84,21 @@ resources:
     path: ./xs-security.json
     service: xsuaa
     service-plan: application
+- name: TicketService06-repo-runtime
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service:  html5-apps-repo
+    service-plan :  app-runtime      
 - name: TicketService06-repo-host
   type: org.cloudfoundry.managed-service
   parameters:
     service: html5-apps-repo
-    service-name: TicketService06-html5-service
     service-plan: app-host
-- name: TicketService06-destination-service
+- name: TicketService06-dest
   type: org.cloudfoundry.managed-service
   parameters:
     config:
-      HTML5Runtime_enabled: false
+      HTML5Runtime_enabled: true
       init_data:
         instance:
           destinations:
@@ -70,11 +107,20 @@ resources:
             ProxyType: Internet
             Type: HTTP
             URL: https://ui5.sap.com
+          - Authentication: NoAuthentication
+            HTML5.DynamicDestination: true
+            HTML5.ForwardAuthToken: true
+            Name: TicketService06-service
+            ProxyType: Internet
+            Type: HTTP
+            URL: ~{srv-api/srv-url}
           existing_destinations_policy: update
       version: 1.0.0
     service: destination
-    service-name: TicketService06-destination-service
     service-plan: lite
+  requires:
+     - name: srv-api
+
 parameters:
   deploy_mode: html5-repo
   enable-parallel-deployments: true

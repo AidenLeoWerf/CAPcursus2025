@@ -5,7 +5,7 @@ namespace mynsdb;
 using {cuid, managed} from '@sap/cds/common';
 using {myns.commons as common} from './commontypes';
 
-context master {
+
     entity Projects : managed {
         key ID : common.Guid;
         Name       : String(100);
@@ -43,7 +43,7 @@ context master {
         UpdatedOn     : DateTime;
 
         // Each Ticket has details stored in Transaction
-        Details : Association to one transaction.IncidentDetails on Details.Incident.ID = ID;
+        Details : Association to one IncidentDetails on Details.Incident.ID = ID;
     }
 
     entity EmployeeProjects {
@@ -53,15 +53,12 @@ context master {
         UpdatedOn    : DateTime;
         Role         : String(50);
     }
-}
 
-context transaction {
     entity IncidentDetails : managed {
-        key Incident        : Association to one master.Incidents;
+        key Incident        : Association to one Incidents;
         ReportedBy        : String(100);
         ReportedOn        : DateTime;
         Status            : common.ticketStatus;  // Status column as per requirement
         ResolutionNotes   : String(500);
         LastUpdatedBy     : String(100);
     }
-}
